@@ -122,7 +122,7 @@ const iframDomEditor = () => {
 position: absolute | relative | static | fixed | sticky | unset | initial | inherit
 float: none | left | right | unset | initial | inherit
 display: inline | block | flex | table | grid | inline-block | inline-flex ...
-互相之间会如何影响: 太多啦
+互相之间会如何影响: too much！！
 ```
 
 ## HTML 的中，如何写一个值为 "a"="b" 的属性值？
@@ -176,12 +176,14 @@ function quickSort(arr, left, right) {
 
 > 动画思路
 
-* 将快排中的每次移动结果进行记录（当前移动的元素和起位置）
-* setTimeout 1500 的频率 更新 dom
+* record each swap action and exchanged element
+将快排中的每次移动结果进行记录（当前移动的元素和起位置）
+* update dom by setTimeout API， and interval is 1.5s
+setTimeout 1500 的频率 更新 dom
 
 ## All HTML Entity
-[all Entity](./Entity.txt)
-
+[HTML Entity](./Entity.txt)
+[Web Link From whatwg](https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references)
 
 ## ECMAScript Specification Types
 ![Specification Types](./Specification-Types.png)
