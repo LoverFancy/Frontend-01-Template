@@ -6,7 +6,7 @@
 ```javascript
 
 const iframDomEditor = () => {
-  // all safte tags
+  // all safe tags
   const tagsList = [
     'head','title','base','link','meta','style','body','article','section','nav','aside','h1','h2','h3',
     'h4','h5','h6','hgroup','header','footer','address','p','hr','pre','blockquote','ol','ul','menu',
