@@ -166,9 +166,9 @@ function quickSort(arr, left, right) {
   arr[left] = arr[i]
   arr[i] = key;
   // find by left
-  quick_sort(arr, left, i-1);
+  quickSort(arr, left, i-1);
   // find by right
-  quick_sort(arr, i+1, right);
+  quickSort(arr, i+1, right);
   return arr
 }
 
