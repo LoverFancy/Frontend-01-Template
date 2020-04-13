@@ -1,7 +1,54 @@
 # 第一周
+
+## 周总结
+
+> 这周winter老师一直在帮我们梳理前端的知识体系。授人鱼？授人渔！
+
+* 学习方法:
+  * 整理法(对内容维度进行区分)
+    * 顺序关系
+    * 组合关系
+    * 维度关系
+    * 分类关系
+  * 追溯法(踩着大牛的肩膀，去看大牛看到的东西，学习大牛的思考方式)
+    * 源头
+    * 标准和文档
+    * 大师
+
+* 技能:
+  * 基础技能（要通过刻意练习提升）
+    * 编程能力(解决落地问题)
+    * 架构能力(解决软件的规模问题)
+    * 工程能力(解决协同问题)
+  * 专业知识（建立知识体系，将知识点串成知识线，将知识线编成知识面）
+  * 领域知识（领域那么多，需要实践积累）
+* 工程体系:
+  * 思考方式
+    * 数据驱动（get实践模型：目标 -> 现状 -> 方案 -> 实施 -> 结果）
+  * CICD
+    * 工具链
+      * 脚手架（提供基础模板）
+      * 本地调试（开发环境）
+      * 单元测试（unit test, TDD模式）
+      * 发布
+    * 持续集成
+      * 实施构建发布
+      * 历史渊源：参考了客户端发布模式
+  * 架构
+    * 客户端架构
+      * 解决软件需求规模带来的复杂性
+    * 服务端架构
+      * 解决大量用户访问带来的复杂性
+    * 前端架构
+      * 库、组件
+      * 通过库、组件，屏蔽开发底层问题，通过提高复用的比例提升开发效率
+
+---
+## 习题
+
 > Chinglish 练习中 😜
 
-## 编写一个 DOM 编辑器：可以自由地操作一个 iframe（空白）中的 DOM 结构，包括增、删、移动
+### 编写一个 DOM 编辑器：可以自由地操作一个 iframe（空白）中的 DOM 结构，包括增、删、移动
 
 ```javascript
 
@@ -116,7 +163,7 @@ const iframDomEditor = () => {
 
 ```
 
-## position float display 各有哪些取值，它们互相之间会如何影响
+### position float display 各有哪些取值，它们互相之间会如何影响
 
 ```javascript
 position: absolute | relative | static | fixed | sticky | unset | initial | inherit
@@ -125,7 +172,7 @@ display: inline | block | flex | table | grid | inline-block | inline-flex ...
 互相之间会如何影响: too much！！
 ```
 
-## HTML 的中，如何写一个值为 "a"="b" 的属性值？
+### HTML 的中，如何写一个值为 "a"="b" 的属性值？
 ```javascript
 // first way
 elementObject.setAttribute('data', `"a"='b'`)
@@ -133,7 +180,7 @@ elementObject.setAttribute('data', `"a"='b'`)
 elementObject.setAttribute('data', "\"a\"=\"b\"")
 ```
 
-## 编写一个快速排序代码，并且用动画演示它的过程，快速排序动画
+### 编写一个快速排序代码，并且用动画演示它的过程，快速排序动画
 
 ```javascript
 
@@ -181,16 +228,20 @@ function quickSort(arr, left, right) {
 * update dom by setTimeout API， and interval is 1.5s
 setTimeout 1500 的频率 更新 dom
 
-## All HTML Entity
+### All HTML Entity
 [HTML Entity](./Entity.txt)
 [Web Link From whatwg](https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references)
 
-## ECMAScript Specification Types
+### ECMAScript Specification Types
 ![Specification Types](./Specification-Types.png)
 > The specification types include Reference, List, Completion, Property Descriptor, Lexical Environment, Environment Record, and Data Block.
 © Ecma International 2019  p43
 
-## ECMAScript Language Types
+### ECMAScript Language Types
 ![Language Types](./Language-Types.png)
 > The ECMAScript language types are Undefined, Null, Boolean, String, Symbol, Number, and Object.
 © Ecma International 2019 p25
+
+### Front End Knowledge System Brain Mapping
+[FrontEndKnowledge.xmind](./FrontEndKnowledge.xmind)
+![MIND IMAGE](./FrontEndKnowledge.png)
