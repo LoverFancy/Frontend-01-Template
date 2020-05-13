@@ -2,6 +2,7 @@
 > 获取 Realm 中的所有对象
 
 - [global object](./global.js)
+- [ Realm in G6](./demo.html)
 
 
 > 完善tool brower中的通讯基础类
