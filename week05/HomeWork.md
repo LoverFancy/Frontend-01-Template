@@ -12,4 +12,4 @@
   - [client](./net/js/client.js)
 * TypeScript版本
   - [server](./net/ts/index.ts)
-  - [client](./net/ts/client.ts)
+  - [client](./net/ts/client.ts)(状态机class 待加入)
