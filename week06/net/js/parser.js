@@ -2,6 +2,8 @@
 // 根据 https://html.spec.whatwg.org/multipage/parsing.html#data-state 提供的状态机描述文档 实现状态机
 // 选取部分 状态进行分析
 
+const CSSParser = require('./cSSParser');
+
 const AMPERSAND = '\u0026'; // AMPERSAND (&)
 const LESS_THAN = '\u003C'; // LESS-THAN SIGN (<)
 const NULL = '\u0000'; // NULL ('')
@@ -25,6 +27,8 @@ let stack = [{
   children: []
 }];
 
+const Css = new CSSParser();
+
 function emitToken(token) {
 
   let top = stack[stack.length - 1];
@@ -35,9 +39,8 @@ function emitToken(token) {
       children: [],
       attributes: []
     };
-
-    element.tagName = token.tagName;
-
+    
+    element.tagName = token.tagName;    
     for(let p in token) {
       if(p !== 'type' && p !== 'tagName'){
 
@@ -47,9 +50,12 @@ function emitToken(token) {
         })
       }
     }
+    console.log(element.attributes);
+    
+    Css.computeCSS(element, stack)
 
     top.children.push(element);
-    element.parent = top;
+    // element.parent = top;
 
     if(!token.isSelfClosing) {
       stack.push(element);
@@ -61,6 +67,10 @@ function emitToken(token) {
       if(top.tagName !== token.tagName) {
         throw new Error('tag start end does not match');
       }else {
+        // add css attributes
+        if(top.tagName === 'style'){
+          Css.addCSSRules(top.children[0].content);
+        }
         stack.pop();
       }
       currentTextNode = null
@@ -412,7 +422,7 @@ function selfClosingStartTag(c) {
   }
 }
 //问题1： 老师 在 5-attribute 的parser中，对应的逻辑和 whatwcg不一致？
-function afterAttributeQuotedValue(c) {
+function afterQuotedAttributeValue(c) {
   if(c.match(/^[\t\n\f ]$/)){
     // U+0009 CHARACTER TABULATION (tab)
     // U+000A LINE FEED (LF)
@@ -450,9 +460,8 @@ function doubleQuotedAttributeValue(c) {
   if(c === QUOTATION){
     // U+0022 QUOTATION MARK (")
     // Switch to the after attribute value (quoted) state.
-    // currentToken[currentAttribute.name] = currentAttribute.value;
-    // console.log('doubleQuotedAttributeValue');
-    return afterAttributeQuotedValue;
+    currentToken[currentAttribute.name] = currentAttribute.value;
+    return afterQuotedAttributeValue;
   }else if (c === AMPERSAND) {
     // U+0026 AMPERSAND (&)
     // Set the return state to the attribute value (double-quoted) state.
@@ -484,7 +493,7 @@ function singleQuotedAttributeValue(c) {
     // U+0027 APOSTROPHE MARK (')
     // Switch to the after attribute value (quoted) state.
     currentToken[currentAttribute.name] = currentAttribute.value;
-    return afterAttributeQuotedValue;
+    return afterQuotedAttributeValue;
   }else if (c === AMPERSAND) {
     // U+0026 AMPERSAND (&)
     // Set the return state to the attribute value (double-quoted) state.
@@ -519,8 +528,8 @@ function unquotedAttributeValue(c) {
     // U+000C FORM FEED (FF)
     // U+0020 SPACE
     // Switch to the before attribute name state.
-    // currentToken[currentAttribute.name] = currentAttribute.value;
-    return beforeAttributeName(c);
+    currentToken[currentAttribute.name] = currentAttribute.value;
+    return beforeAttributeName;
   }else if (c === AMPERSAND) {
     // U+0026 AMPERSAND (&)
     // Set the return state to the attribute value (unquoted) state.

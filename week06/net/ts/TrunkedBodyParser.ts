@@ -1,3 +1,10 @@
+/**
+ * @Author: qiancheng
+ * @Date:   2020-05-16T18:46:51+08:00
+ * @Last modified by:   qiancheng
+ * @Last modified time: 2020-05-19T11:49:25+08:00
+ */
+
 const FINITE_STATE_MACHINE = {
   // text length
   WAITING_LENGTH: 0,

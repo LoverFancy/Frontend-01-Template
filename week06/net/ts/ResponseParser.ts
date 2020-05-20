@@ -1,3 +1,10 @@
+/**
+ * @Author: qiancheng
+ * @Date:   2020-05-16T18:46:51+08:00
+ * @Last modified by:   qiancheng
+ * @Last modified time: 2020-05-19T11:49:19+08:00
+ */
+
 // import FSM from './fsm';
 import TrunkedBodyParser from './TrunkedBodyParser';
 // state machine

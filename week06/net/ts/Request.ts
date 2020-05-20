@@ -1,3 +1,12 @@
+/**
+ * @Author: qiancheng
+ * @Date:   2020-05-16T18:46:51+08:00
+ * @Last modified by:   qiancheng
+ * @Last modified time: 2020-05-19T14:54:43+08:00
+ */
+
+
+
 import * as net from 'net';
 import ResponseParser from './ResponseParser';
 
@@ -64,7 +73,7 @@ export default class Request {
         break;
       case 'application/x-www-form-urlencode':
         this.bodyText = Object.keys(this.body!).map(
-          (key) => `${key}=${encodeURIComponent(this.body![key])}`
+          (key) => `${key}=${encodeURIComponent(this.body[key]+'')}`
         ).join('&');
         this.headers!['Content-length'] = this.bodyText.length;
         break;
@@ -73,9 +82,10 @@ export default class Request {
     }
   }
 
-  send(connection?: net.Socket) {
+  async send(connection?: net.Socket) {
     return new Promise((resolve, reject) => {
       const parser = new ResponseParser();
+      console.log(parser)
         if(connection){
           connection.write(this.toString())
         }else {

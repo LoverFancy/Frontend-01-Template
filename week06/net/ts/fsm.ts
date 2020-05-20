@@ -1,3 +1,10 @@
+/**
+ * @Author: qiancheng
+ * @Date:   2020-05-16T18:46:51+08:00
+ * @Last modified by:   qiancheng
+ * @Last modified time: 2020-05-19T14:54:07+08:00
+ */
+
 interface Config {
   initial: string | number;
   states: {
@@ -73,7 +80,7 @@ export default class FSM {
 
     const { transitions = {} } = this.STATES[this.CURRENT] || {};
 
-    if(Object.keys(transitions).includes(conditionType+'')){
+    if(Object.keys(transitions).includes(conditionType)){
       const nextState = transitions[conditionType];
       this.changeState(nextState);
     }else {
