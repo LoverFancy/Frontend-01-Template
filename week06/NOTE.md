@@ -52,6 +52,8 @@ function end(input) {
 }
 
 ```
+[example](./conditionToFunction.js)
+
 ### How Browser Render
 ![image](./render-flow.png)
 
