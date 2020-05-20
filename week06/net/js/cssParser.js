@@ -1,9 +1,3 @@
-/**
- * @Author: qiancheng
- * @Date:   2020-05-16T19:16:00+08:00
- * @Last modified by:   qiancheng
- * @Last modified time: 2020-05-20T11:00:01+08:00
- */
 const css = require('css');
 
 const ID_SELECTOR = '#';
@@ -40,7 +34,7 @@ module.exports = class CSSParser {
       if(this.isMatch(element, selector, ID_SELECTOR)){
         return true
       }
-    } else if (selectorType === CLASS_SELECTOR.charCodeAt(0)) {
+    } else if (selectorType === CLASS_SELECTOR.charCodeAt(0)) {      
       if(this.isMatch(element, selector, CLASS_SELECTOR)){
         return true
       }
@@ -118,8 +112,7 @@ module.exports = class CSSParser {
         if(matched) {
           // 匹配到
           const { computedStyle } = element;
-          const weights = this.specificity(rule.selectors[0]);
-
+          const weights = this.specificity(rule.selectors[0]);          
           for(let declaration of rule.declarations) {
             // init
             if(!computedStyle[declaration.property]){

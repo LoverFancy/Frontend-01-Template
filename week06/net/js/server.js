@@ -1,10 +1,3 @@
-/**
- * @Author: qiancheng
- * @Date:   2020-05-16T18:46:51+08:00
- * @Last modified by:   qiancheng
- * @Last modified time: 2020-05-19T14:55:01+08:00
- */
-
 const http = require("http");
 
 const server = http.createServer((_, res) => {
@@ -23,13 +16,17 @@ const server = http.createServer((_, res) => {
   			body div img{
   				width:30px;
   				background-color: #ff1111;
+				}
+  			.abc {
+  				width:60px;
+  				background-color: #red;
   			}
   		</style>
   	</head>
   	<body>
   		<Div>
   			<img id="myid"/>
-  			<img />
+  			<img class='abc'/>
   			321
   		</Div>
   	</body>
