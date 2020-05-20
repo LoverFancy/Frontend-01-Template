@@ -7,11 +7,26 @@
 - [match](https://github.com/jay0815/match/blob/master/index.js)
 
 
-> 完善tool brower中的通讯基础类
+> 完善toy brower中的通讯基础类、html解析工具、css解析绑定工具
 
 * JavaScript版本
   - [server](./net/js/server.js)
   - [client](./net/js/client.js)
-* TypeScript版本
-  - [server](./net/ts/index.ts)
-  - [client](./net/ts/client.ts)(状态机class 待加入)
+  - [html parser](./net/js/parser.js)
+  - [css parser](./net/js/cssParser.js)
+
+#### Todo
+
+* [完成Selectors的文档梳理后，在CSSParser中补充对应功能](https://www.w3.org/TR/CSS2/selector.html#Selectors)
+  * 在CSSParser中补充处理Universal selector(*)功能
+  * 在CSSParser中补充处理Descendant selectors(' ')功能
+  * 在CSSParser中补充处理Child selectors(>)功能
+  * 在CSSParser中补充处理Adjacent sibling selectors(+)功能
+  * 在CSSParser中补充处理Attribute selectors功能
+    * [att]
+    * [att=val]
+    * [att~=val]
+    * [att|=val]
+  * 在CSSParser中补充处理 Pseudo-elements 和 pseudo-classes功能
+
+* 完善ts版本的toy browser
