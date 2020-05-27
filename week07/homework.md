@@ -6,7 +6,7 @@
 - [Layout](./net/js/layout.js)
 
 #### result
-- ![image]()
+![image](./net/js/dom.jpg)
 
 > 画一个 CSS 的脑图
 
