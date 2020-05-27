@@ -135,7 +135,6 @@ class CssLayout {
     items.sort((a, b) => (a.order || 0) - (b.order || 0));
 
     const style = elementStyle;
-    console.log('style   ------', style);
     // 对style中的宽高属性初始化 [height, witdh]
     this.initHeightAndWidth(style);
     // // 对style中flex 相关属性进行初始化
@@ -143,7 +142,6 @@ class CssLayout {
     // 根据flexDirection 确定数据处理相关的状态
     // 即根据排列方向 确定排列计算规则
     const rule = this.abstractCalculationRule(style);
-    console.log(rule);
     if(rule) {
       // let {
       //   mainSize, mainStart, mainEnd, mainSign, mainBase, crossSize,
@@ -161,8 +159,6 @@ class CssLayout {
 
       this.getCurrentMain(flexLines, items, style, rule, mainSpace);
       this.getCrossSpace(style, flexLines, rule);
-      element.style = style
-      console.log('style   ------', element.style);
     }
   }
 
@@ -284,6 +280,9 @@ class CssLayout {
       // display 为 flex的父级容器 设置为不换行 且 宽度 为 auto 时,则即使 当前行大小不足，也要排列在同一行中
       if(style['flex-wrap'] === 'nowrap') {
         flexLine.push(item);
+        if(!itemStyle.flex){
+          mainSpace -= itemStyle[mainSize];
+        }
       }else {
         // 当前元素存在 flex 属性时，元素可伸缩，则当前行一定能放入该元素
         if(itemStyle.flex) {
@@ -316,9 +315,9 @@ class CssLayout {
           }else {
             flexLine.push(item);
           }
+          mainSpace -= itemStyle[mainSize];
         }
       }
-      mainSpace -= itemStyle[mainSize];
       // 计算交叉轴大小
       crossSpace = this.getLocalLineCrossSpace(crossSpace, itemStyle, rule);
 
@@ -455,13 +454,12 @@ class CssLayout {
 
   calculateItemCrossSite(flexLines, style, crossSpace, crossBase, step, rule) {
     const { crossSize, crossStart, crossEnd, crossSign } = rule;
-    const baseLineCrossSize = style['align-content'] === 'stretch' ? crossSpace / flexLines : 0
+    const baseLineCrossSize = style['align-content'] === 'stretch' ? crossSpace / flexLines.length : 0;
     flexLines.map((flexLine) => {
       const lineCrossSize = baseLineCrossSize + flexLine.crossSpace;
       flexLine.map((item) => {
         const itemStyle = this.getStyle(item);
         const align = itemStyle['align-self'] || style['align-items'];
-
         if(itemStyle[crossSize] === null){
           itemStyle[crossSize] = align === 'stretch' ? lineCrossSize : 0;
         }
