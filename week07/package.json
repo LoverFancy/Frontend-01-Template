@@ -1,0 +1,12 @@
+{
+  "name": "week07",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "jack",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "css": "^2.2.4",
+    "images": "^3.0.2"
+  }
+}
