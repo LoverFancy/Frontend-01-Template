@@ -119,6 +119,7 @@ class CssLayout {
 
 
   layout(element) {
+    // console.log('element', element);
     // computedStyle 不存在时不做处理
     if(!element.computedStyle){
       return;
@@ -133,20 +134,19 @@ class CssLayout {
     const items = element.children.filter((i) => i.type === 'element');
     // 根据 order 进行元素的排序
     items.sort((a, b) => (a.order || 0) - (b.order || 0));
-
     const style = elementStyle;
-    // 对style中的宽高属性初始化 [height, witdh]
+    // // 对style中的宽高属性初始化 [height, witdh]
     this.initHeightAndWidth(style);
-    // // 对style中flex 相关属性进行初始化
+    // // // 对style中flex 相关属性进行初始化
     this.initFlexSingleProperties(style)
     // 根据flexDirection 确定数据处理相关的状态
     // 即根据排列方向 确定排列计算规则
     const rule = this.abstractCalculationRule(style);
     if(rule) {
-      // let {
-      //   mainSize, mainStart, mainEnd, mainSign, mainBase, crossSize,
-      //   crossStart, crossEnd, crossSign, crossBase
-      // } = rule;
+      let {
+        mainSize, mainStart, mainEnd, mainSign, mainBase, crossSize,
+        crossStart, crossEnd, crossSign, crossBase
+      } = rule;
       const isAutoSize = this.isAutoMainSize(style, rule);
       // 计算父级容器的主轴大小
       if(isAutoSize){
@@ -156,7 +156,6 @@ class CssLayout {
       const {
         flexLines, mainSpace
       } = this.spliteLines(style, items, rule, isAutoSize);
-
       this.getCurrentMain(flexLines, items, style, rule, mainSpace);
       this.getCrossSpace(style, flexLines, rule);
     }
@@ -266,13 +265,14 @@ class CssLayout {
     // 当前行元素
     let flexLine = [];
     // display 为 flex的元素下 的 所有元素
-    const flexLines = [flexLine];
+    const flexLines = [];
     // 当前主轴已排的元素的大小
     let mainSpace = style[mainSize];
     // 交叉轴一排元素的大小
     let crossSpace = 0;
     items.map((item, index) => {
-      const itemStyle = this.getStyle(item);
+      const itemStyle = this.getStyle(items[index]);
+      // console.log(item, itemStyle);
       // 当前元素没有设置宽度，则宽度视为0,即忽律该元素
       if(itemStyle[mainSize] === null){
         itemStyle[mainSize] = 0;
@@ -287,12 +287,13 @@ class CssLayout {
         // 当前元素存在 flex 属性时，元素可伸缩，则当前行一定能放入该元素
         if(itemStyle.flex) {
           flexLine.push(item);
+          mainSpace -= 0;
         }else {
           // 当前元素主轴大于父容器的主轴大小时
           if(itemStyle[mainSize] > style[mainSize]){
             itemStyle[mainSize] = style[mainSize]
           }
-          // 剩余空间小于当前元素主轴大小时
+          // 剩余空间小于当前元素大小时
           if(mainSpace < itemStyle[mainSize]){
             // 保存当前行主轴剩余大小
             // 为后续弹性填充时，提供计算数据
@@ -301,6 +302,7 @@ class CssLayout {
             flexLine.crossSpace = crossSpace;
             // 如果已存在元素
             if(flexLine.length > 0){
+              // console.log(item.attributes[0].value, 'here');
               flexLines.push(flexLine);
             }
             mainSpace = style[mainSize];
@@ -308,10 +310,14 @@ class CssLayout {
             flexLine = [item];
             // 如果另起一行后当前元素还是大于父容器主轴剩余大小
             // 则当前元素独占一行
-            // if(mainSpace < itemStyle[mainSize]){
-            //   flexLines.push(flexLine);
-            //   flexLine = [];
-            // }
+            if(mainSpace <= itemStyle[mainSize] || (items.length - 1) === index){
+              // 为后续弹性填充时，提供计算数据
+              flexLine.mainSpace = 0;
+              // 保存当前行交叉轴大小
+              flexLine.crossSpace = crossSpace;
+              flexLines.push(flexLine);
+              flexLine = [];
+            }
           }else {
             flexLine.push(item);
           }
@@ -329,7 +335,6 @@ class CssLayout {
         this.getLineCrossSpace(style, flexLine, isAutoSize, rule, crossSpace)
       }
     })
-
     return {
       flexLines, mainSpace
     }
@@ -410,11 +415,11 @@ class CssLayout {
 
         if(flexTotal) {
           // flexible items
-          this.calculateItemSite({items, rule, mainSpace, flexTotal});
+          this.calculateItemSite({items: flexLine, rule, mainSpace, flexTotal});
         }else {
           // no flexible items
           const { step, currentMain } = this.getNoFlexibleCurrentAndStep(style, items, rule, mainSpace);
-          this.calculateItemSite({items, rule, mainSpace, flexTotal, step, currentMain})
+          this.calculateItemSite({items: flexLine, rule, mainSpace, flexTotal, step, currentMain})
         }
       })
 
@@ -457,13 +462,12 @@ class CssLayout {
     const baseLineCrossSize = style['align-content'] === 'stretch' ? crossSpace / flexLines.length : 0;
     flexLines.map((flexLine) => {
       const lineCrossSize = baseLineCrossSize + flexLine.crossSpace;
-      flexLine.map((item) => {
+      flexLine.map((item, index) => {
         const itemStyle = this.getStyle(item);
         const align = itemStyle['align-self'] || style['align-items'];
         if(itemStyle[crossSize] === null){
           itemStyle[crossSize] = align === 'stretch' ? lineCrossSize : 0;
         }
-
         if(align === 'flex-start'){
           itemStyle[crossStart] = crossBase;
           itemStyle[crossEnd] = itemStyle[crossStart] + crossSign * itemStyle[crossSize];

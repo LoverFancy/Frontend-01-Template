@@ -324,7 +324,9 @@ void async function() {
 
   let dom = parser.parserHTML(response.body);
 
-  let view = images(800, 600);
+  const view = images(800, 600);
+
+  // console.log('dom', JSON.stringify(dom));
 
   render(view, dom);
 

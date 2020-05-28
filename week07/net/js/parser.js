@@ -76,7 +76,7 @@ function emitToken(token) {
         }
         stack.pop();
       }
-      Layout.layout(top)
+      Layout.layout(top);
       currentTextNode = null
   }else if (token.type === 'text') {
       if(currentTextNode === null){
