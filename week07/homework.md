@@ -6,7 +6,16 @@
 - [Layout](./net/js/layout.js)
 
 #### result
+> create by images
+
 ![image](./net/js/dom.jpg)
+
+> compare dom
+
+![image](./ContrastDom.png)
+
+[ContrastDom.html](./net/js/ContrastDom.html)
+
 
 > 画一个 CSS 的脑图
 
