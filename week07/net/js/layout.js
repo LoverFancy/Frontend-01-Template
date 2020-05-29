@@ -119,7 +119,6 @@ class CssLayout {
 
 
   layout(element) {
-    // console.log('element', element);
     // computedStyle 不存在时不做处理
     if(!element.computedStyle){
       return;
@@ -274,7 +273,7 @@ class CssLayout {
       const itemStyle = this.getStyle(items[index]);
       // console.log(item, itemStyle);
       // 当前元素没有设置宽度，则宽度视为0,即忽律该元素
-      if(itemStyle[mainSize] === null){
+      if(this.isNullOrUndefined(itemStyle[mainSize])){
         itemStyle[mainSize] = 0;
       }
       // display 为 flex的父级容器 设置为不换行 且 宽度 为 auto 时,则即使 当前行大小不足，也要排列在同一行中
@@ -282,6 +281,10 @@ class CssLayout {
         flexLine.push(item);
         if(!itemStyle.flex){
           mainSpace -= itemStyle[mainSize];
+        }
+        // 单行处理的入栈
+        if((items.length - 1) === index){
+          flexLines.push(flexLine);
         }
       }else {
         // 当前元素存在 flex 属性时，元素可伸缩，则当前行一定能放入该元素
