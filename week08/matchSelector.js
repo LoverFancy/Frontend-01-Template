@@ -1,7 +1,7 @@
 const CSSwhat = require('css-what');
-const jsdom = require('jsdom');
 const { match } = require('./match.js');
-const { JSDOM } = jsdom;
+// const jsdom = require('jsdom');
+// const { JSDOM } = jsdom;
 
 const ID_OR_CLASS = ['id', 'class'];
 
@@ -27,6 +27,8 @@ const NORMAL_VAILD_PSEUDO_CLASS = [
 const LANGUAGE_PSEUDO_CLASS = ['lang'];
 // structural pseudo classes
 const STRUCTURAL_PSEUDO_CLASSES = ['nth-child', 'nth-last-child', 'nth-of-type', 'nth-last-of-type'];
+
+const NEGATION_PSEUDO_CLASS = ['not'];
 
 const VAILD_PSEUDO_CLASS_FUNCTION = LANGUAGE_PSEUDO_CLASS.concat(STRUCTURAL_PSEUDO_CLASSES);
 
@@ -175,9 +177,42 @@ function isVaildPseudoClassFunctionData(selector) {
   return LANGUAGE_PSEUDO_CLASS.includes(name) ? isIdentifiers(data) : isVaildExpression(data);
 }
 
+function isVaildNegationPseudoClass(selector) {
+  const { data } = selector;
+
+  if(data[0]){
+    // Negations may not be nested; :not(:not(...)) is invalid.
+    // TODO: 逻辑不严谨
+    if(data[0][0] && data[0][0].name === 'not'){
+        return false;
+    }else {
+      // type selector：例如 div
+      // universal selector：例如 *
+      // attribute selector：例如 div[foo]
+      // class selector：例如 .myclass
+      // ID selector：例如 #myid
+      // pseudo-class：例如 a:hover
+      // const typeReg = /^[a-z]+(-[a-z])*$/.test(data);
+      // const universalReg = /^\*$/.test(data);
+      // const attributeReg = /^[a-z]+(-[a-z])*\[\S+\]$/.test(data);
+      // const classReg = /^[a-z]+(-[a-z])*\[\S+\]$/.test(data);
+      // const idReg = /^[a-z]+(-[a-z])*\[\S+\]$/.test(data);
+      // return typeReg || universalReg || attributeReg || idReg;
+      // TODO: 逻辑不严谨
+      return true
+    }
+  }
+  return false
+}
+
 function isVaildPseudoClass(element, selector) {
   const { name } = selector;
   if(VAILD_PSEUDO_CLASS_FUNCTION.includes(name)){
+    if(!selector.data) {
+      return false
+    }
+    return isVaildPseudoClassFunctionData(selector);
+  }else if (NEGATION_PSEUDO_CLASS.includes(name)) {
     if(!selector.data) {
       return false
     }
@@ -201,9 +236,9 @@ function isVaildPseudoClass(element, selector) {
 // all of them must be treated as IDs for that element for the purposes of the ID selector.
 // 当前元素 attribute 中的 id 如果存在多个 id 值, 所有 id值 都必须视为该元素的id
 
-const getIdSelectorValue = (v) => [v];
+const getIdSelectorValue = (v) => v === null ? [] : [v];
 
-const getClassSelectorValue = (v) => v.split(' ');
+const getClassSelectorValue = (v) => v === null ? [] : v.split(' ');
 
 const convert = {
   id: getIdSelectorValue,
@@ -212,6 +247,9 @@ const convert = {
 
 function getAttributes(element) {
   const names = element.getAttributeNames();
+  if(names.length === 0) {
+    return {};
+  }
   const attributes = names
   .filter((i) => !ID_OR_CLASS.includes(i))
   .reduce((p, l) => {
@@ -228,7 +266,7 @@ function matchHeaderAndNextWord(value, attribute) {
     const { length } = value;
     const attributeHeader = attribute.slice(0, length);
     const attributeHeaderNextWord = attribute.slice(length, length+1);
-    return value === attributeHeader && ['', '-'].includes(attributeHeaderNextWord);
+    return value === attributeHeader && ['', ' ', '-'].includes(attributeHeaderNextWord);
   }
   return false;
 }
@@ -292,6 +330,7 @@ function judgeAttribute(attributes, selector) {
     // [att*=val]
     // Represents an element with the att attribute whose value contains at least one instance of the substring "val".
     // If "val" is the empty string then the selector does not represent anything.
+    // match function 是之前写的 基于 状态机的 匹配函数
     return attributes[name] && match(value, attributes[name]);
   }
   return false
@@ -310,10 +349,11 @@ function matchSelector(element, selector) {
   try {
     // split selector & match order by local element
     const allSelector = CSSwhat.parse(selector);
+    // console.log('allSelector', JSON.stringify(allSelector));
     // init attributes by local element
     let attributes = updateAttributes(element);
     let searchMode;
-
+    // console.log('attributes', attributes);
     for(let site = 0; site < allSelector.length; site++){
 
       let i = 0;
@@ -347,6 +387,9 @@ function matchSelector(element, selector) {
           isMatch = isVaildPseudoClass(element, selector[i]);
         }else if (type === 'pseudo-element'){
           isMatch = isVaildPseudoElement(element, selector[i]);
+        }else if(type === 'universal'){
+          // * 通配选择器
+          isMatch = true;
         }
 
         if(isMatch) {
@@ -372,27 +415,36 @@ function matchSelector(element, selector) {
     return false;
   }
 }
-/**
- * test
- * @type {JSDOM}
- */
-const dom = new JSDOM(`
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-  </head>
-  <body>
-    <div id='qq' class='a b c'>123</div>
-  </body>
-</html>`);
 
-const { document } = dom.window;
 
-const testElement = document.getElementById('qq')
+// base window
+// const dom = new JSDOM(`
+// <!DOCTYPE html>
+// <html lang="en" dir="ltr">
+//   <head>
+//     <meta charset="utf-8">
+//     <title></title>
+//   </head>
+//   <body>
+//   </body>
+// </html>`);
+//
+// const { document } = dom.window;
+//
+// const body = document.getElementsByTagName('body');
+//
+// const A = document.createElement('a');
+// A.setAttribute('class', 'c');
+//
+// const simpleSelectorWithTagName = 'a';
+// body[0].append(A);
 
-matchSelector(testElement, 'span#qq.a.b.c');
+// setAttributes(A, { class: 'c' })
+// it("element: <a class='c'/>, string: .a", function() {
+//   expect(matchSelector(A, '.a')).to.be.equal(false);
+// });
+
+// matchSelector(A, '.a');
 
 module.exports = {
   matchSelector
