@@ -131,8 +131,10 @@ function updateAttributes(element) {
 // functions deal with pseudo element
 function isVaildPseudoElement(element, selector) {
   // compatibility for a::selection
-  const pseudoElementSet = element.tagName.toLocaleLowerCase() === 'a' ?
-  TAG_A_VAILD_PSEUDO_ELEMENT : VAILD_PSEUDO_ELEMENT;
+  let pseudoElementSet = VAILD_PSEUDO_ELEMENT;
+  if(element.tagName.toLocaleLowerCase() === 'a') {
+    pseudoElementSet = pseudoElementSet.concat(TAG_A_VAILD_PSEUDO_ELEMENT);
+  }
   return pseudoElementSet.includes(selector.name);
 }
 
@@ -149,17 +151,34 @@ function isVaildPseudoElement(element, selector) {
 // and if a backslash is immediately followed by the end of the style sheet,
 // it also stands for itself (i.e., a DELIM token)
 
-/**
-  name      {nmchar}+
-  nmstart   [_a-z]|{nonascii}|{escape}
-  nonascii  [^\0-\177]
-  unicode   \\[0-9a-f]{1,6}(\r\n|[ \n\r\t\f])?
-  escape    {unicode}|\\[^\n\r\f0-9a-f]
-  nmchar    [_a-z0-9-]|{nonascii}|{escape}
-  num       [0-9]+|[0-9]*\.[0-9]+
-**/
+// In CSS, identifiers (including element names, classes, and IDs in selectors)
+// can contain only the characters [a-zA-Z0-9] and ISO 10646 characters U+00A0 and higher,
+// plus the hyphen (-) and the underscore (_); they cannot start with a digit,
+// two hyphens, or a hyphen followed by a digit.
+// Identifiers can also contain escaped characters and any ISO 10646 character as a numeric code (see next item).
+// For instance, the identifier "B&W?" may be written as "B\&W\?" or "B\26 W\3F"
 function isIdentifiers(data) {
-  return true
+  // C must be a valid CSS identifier [CSS21]
+  // and must not be empty.
+  // (Otherwise, the selector is invalid.)
+  if(data === null) {
+    return false
+  }
+  // ident     [-]?{nmstart}{nmchar}*
+  // name      {nmchar}+
+  // nmstart   [_a-z]|{nonascii}|{escape}
+  // nonascii  [^\0-\177]
+  // unicode   \\[0-9a-f]{1,6}(\r\n|[ \n\r\t\f])?
+  // escape    {unicode}|\\[^\n\r\f0-9a-f]
+  // nmchar    [_a-z0-9-]|{nonascii}|{escape}
+  const nonascii = '[^\0-\177]';
+  const unicode = '\\[0-9a-f]{1,6}(\r\n|[ \n\r\t\f])?';
+  const escape = `${unicode}|\\[^\n\r\f0-9a-f]`;
+  const nmstart = `[_a-z]|${nonascii}|${escape}`;
+  const nmchar = `[_a-z0-9-]|${nonascii}|${escape}`;
+  const ident = `[-]?${nmstart}${nmchar}*`;
+  const dataVaildRegExp = new RegExp(ident);
+  return dataVaildRegExp.test(data);
 }
 /**
 BNF
@@ -177,28 +196,37 @@ function isVaildPseudoClassFunctionData(selector) {
   return LANGUAGE_PSEUDO_CLASS.includes(name) ? isIdentifiers(data) : isVaildExpression(data);
 }
 
+function isVaildSelectorListArgument(data) {
+  // CSSwhat.parse('a:not') -> data = null
+  if(data === null){
+    return false
+  }
+  // CSSwhat.parse('a:not()') -> data = [[]]
+  if(data[0].length === 0){
+    return false
+  }
+  return true
+}
+function isNestingNot(data) {
+  return data[0][0].name === 'not' ? true : false
+}
+
 function isVaildNegationPseudoClass(selector) {
   const { data } = selector;
-
-  if(data[0]){
+  if(isVaildSelectorListArgument(data)){
     // Negations may not be nested; :not(:not(...)) is invalid.
-    // TODO: 逻辑不严谨
-    if(data[0][0] && data[0][0].name === 'not'){
-        return false;
-    }else {
+    if(isNestingNot(data)){
+      return false;
+    }
+    // may be will support Selector list argument in future
+    if(data.length === 1){
+      // TODO: 逻辑不严谨
       // type selector：例如 div
       // universal selector：例如 *
       // attribute selector：例如 div[foo]
       // class selector：例如 .myclass
       // ID selector：例如 #myid
       // pseudo-class：例如 a:hover
-      // const typeReg = /^[a-z]+(-[a-z])*$/.test(data);
-      // const universalReg = /^\*$/.test(data);
-      // const attributeReg = /^[a-z]+(-[a-z])*\[\S+\]$/.test(data);
-      // const classReg = /^[a-z]+(-[a-z])*\[\S+\]$/.test(data);
-      // const idReg = /^[a-z]+(-[a-z])*\[\S+\]$/.test(data);
-      // return typeReg || universalReg || attributeReg || idReg;
-      // TODO: 逻辑不严谨
       return true
     }
   }
@@ -206,18 +234,21 @@ function isVaildNegationPseudoClass(selector) {
 }
 
 function isVaildPseudoClass(element, selector) {
-  const { name } = selector;
+  const { name, data } = selector;
   if(VAILD_PSEUDO_CLASS_FUNCTION.includes(name)){
-    if(!selector.data) {
+    if(!data) {
       return false
     }
     return isVaildPseudoClassFunctionData(selector);
   }else if (NEGATION_PSEUDO_CLASS.includes(name)) {
-    if(!selector.data) {
+    if(!data) {
       return false
     }
-    return isVaildPseudoClassFunctionData(selector);
+    return isVaildNegationPseudoClass(selector);
   }else {
+    if(data !== null) {
+      return false
+    }
     const tag = element.tagName.toLocaleLowerCase();
     let pseudoClassSet = NORMAL_VAILD_PSEUDO_CLASS;
     if(tag === 'a'){
@@ -417,7 +448,7 @@ function matchSelector(element, selector) {
 }
 
 
-// base window
+// // base window
 // const dom = new JSDOM(`
 // <!DOCTYPE html>
 // <html lang="en" dir="ltr">
@@ -434,17 +465,9 @@ function matchSelector(element, selector) {
 // const body = document.getElementsByTagName('body');
 //
 // const A = document.createElement('a');
-// A.setAttribute('class', 'c');
-//
-// const simpleSelectorWithTagName = 'a';
 // body[0].append(A);
+// matchSelector(A, ':root()')
 
-// setAttributes(A, { class: 'c' })
-// it("element: <a class='c'/>, string: .a", function() {
-//   expect(matchSelector(A, '.a')).to.be.equal(false);
-// });
-
-// matchSelector(A, '.a');
 
 module.exports = {
   matchSelector

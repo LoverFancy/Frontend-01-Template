@@ -27,10 +27,14 @@ const { document } = dom.window;
 const body = document.getElementsByTagName('body');
 
 describe("Result Success Testing", function() {
-  // simple selector
   const A = document.createElement('a');
   const simpleSelectorWithTagName = 'a';
   body[0].append(A);
+  // Groups of selectors
+  it("element: <a/>, string: div, span, a", function() {
+    expect(matchSelector(A, 'div, span, a')).to.be.equal(true);
+  });
+  // simple selector
   // tagName
   it("element: <a />, selector: a", function() {
     expect(matchSelector(A, simpleSelectorWithTagName)).to.be.equal(true);
@@ -49,7 +53,6 @@ describe("Result Success Testing", function() {
   it("element: <a class='c'/>, string: .c", function() {
     expect(matchSelector(A, '.c')).to.be.equal(true);
   });
-
   // multiple classes
   setAttributes(A, { class: 'a b c' });
   it("element: <a class='c'/>, string: .a", function() {
@@ -76,4 +79,57 @@ describe("Result Success Testing", function() {
   it("element: <a href='a b c'/>, string: [href|=a]", function() {
     expect(matchSelector(A, '[href|=a]')).to.be.equal(true);
   });
+  setAttributes(A, { more: 'ab cd' });
+  it("element: <a more='ab cd'/>, string: [more^=ab]", function() {
+    expect(matchSelector(A, '[more^=ab]')).to.be.equal(true);
+  });
+  it("element: <a more='ab cd'/>, string: [more$=cd]", function() {
+    expect(matchSelector(A, '[more$=cd]')).to.be.equal(true);
+  });
+  it("element: <a more='ab cd'/>, string: [more^=b]", function() {
+    expect(matchSelector(A, '[more*=b]')).to.be.equal(true);
+  });
+  // Pseudo Class
+  // language pseudo class
+  it("element: <a/>, string: :lang(cn)", function() {
+    expect(matchSelector(A, ':lang(cn)')).to.be.equal(true);
+  });
+  it("element: <a/>, string: a:lang(cn)", function() {
+    expect(matchSelector(A, 'a:lang(cn)')).to.be.equal(true);
+  });
+  // structural pseudo classes
+  it("element: <a/>, string: :root", function() {
+    expect(matchSelector(A, ':root')).to.be.equal(true);
+  });
+  it("element: <a/>, string: a:root", function() {
+    expect(matchSelector(A, 'a:root')).to.be.equal(true);
+  });
+  it("element: <a/>, string: a:nth-child(+3n-0)", function() {
+    expect(matchSelector(A, 'a:nth-child(+3n-0)')).to.be.equal(true);
+  });
+  // negation pseudo class
+  it("element: <a/>, string: :not", function() {
+    expect(matchSelector(A, ':not(disabled)')).to.be.equal(true);
+  });
+  // Pseudo elements class
+  it("element: <a/>, string: ::after", function() {
+    expect(matchSelector(A, '::after')).to.be.equal(true);
+  });
+  it("element: <a/>, string: ::selection", function() {
+    expect(matchSelector(A, '::selection')).to.be.equal(true);
+  });
+  // prepear
+  const Div = document.createElement('div');
+  const ChildDiv = document.createElement('div');
+  const ChildSpan = document.createElement('span');
+  const ChildP = document.createElement('p');
+  Div.appendChild(ChildDiv);
+  Div.appendChild(ChildSpan);
+  Div.appendChild(ChildP);
+  body[0].append(Div);
+  // Combinators
+  // Descendant combinator
+  // it("element: <a/>, string: ::selection", function() {
+  //   expect(matchSelector(Div, '::selection')).to.be.equal(true);
+  // });
 });

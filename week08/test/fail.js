@@ -30,6 +30,11 @@ describe("Result Failed Testing", function() {
 
   const A = document.createElement('a');
   const simpleSelectorWithTagName = 'a';
+  // Groups of selectors
+  it("element: <a/>, string: div, span, p", function() {
+    expect(matchSelector(A, 'div, span, p')).to.be.equal(false);
+  });
+  // simple selector
   // tagName
   it("element: undefined, selector: a", function() {
     expect(matchSelector(void 0, simpleSelectorWithTagName)).to.be.equal(false);
@@ -75,5 +80,58 @@ describe("Result Failed Testing", function() {
   it("element: <a href='a b c'/>, string: [href|=a]", function() {
     expect(matchSelector(A, '[href|=a]')).to.be.equal(false);
   });
-
+  setAttributes(A, { more: 'cd ab' });
+  it("element: <a more='cd ab'/>, string: [more^=ab]", function() {
+    expect(matchSelector(A, '[more^=ab]')).to.be.equal(false);
+  });
+  it("element: <a more='cd ab'/>, string: [more$=cd]", function() {
+    expect(matchSelector(A, '[more$=cd]')).to.be.equal(false);
+  });
+  it("element: <a more='cd ab'/>, string: [more^=e]", function() {
+    expect(matchSelector(A, '[more*=e]')).to.be.equal(false);
+  });
+  // Pseudo Class
+  // language pseudo class
+  it("element: <a/>, string: :lang", function() {
+    expect(matchSelector(A, ':lang')).to.be.equal(false);
+  });
+  it("element: <a/>, string: a:lang()", function() {
+    expect(matchSelector(A, 'a:lang()')).to.be.equal(false);
+  });
+  // structural pseudo classes
+  it("element: <a/>, string: :root()", function() {
+    expect(matchSelector(A, ':root()')).to.be.equal(false);
+  });
+  it("element: <a/>, string: a:nth-child(+3n-9n)", function() {
+    expect(matchSelector(A, 'a:nth-child(+3n-9n)')).to.be.equal(false);
+  });
+  // negation pseudo class
+  it("element: <a/>, string: :not", function() {
+    expect(matchSelector(A, ':not(:not(a))')).to.be.equal(false);
+  });
+  it("element: <a/>, string: a:not", function() {
+    expect(matchSelector(A, 'a:not')).to.be.equal(false);
+  });
+  it("element: <a/>, string: a:not()", function() {
+    expect(matchSelector(A, 'a:not()')).to.be.equal(false);
+  });
+  // prepear
+  const Div = document.createElement('div');
+  const ChildDiv = document.createElement('div');
+  const ChildSpan = document.createElement('span');
+  const ChildP = document.createElement('p');
+  Div.appendChild(ChildDiv);
+  Div.appendChild(ChildSpan);
+  Div.appendChild(ChildP);
+  body[0].append(Div);
+  // Pseudo elements class
+  it("element: <div/>, string: ::cc", function() {
+    expect(matchSelector(Div, '::cc')).to.be.equal(false);
+  });
+  it("element: <div/>, string: ::selection", function() {
+    expect(matchSelector(Div, '::selection')).to.be.equal(false);
+  });
+  // Combinators
+  // Descendant combinator
+  //
 });
