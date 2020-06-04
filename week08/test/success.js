@@ -129,7 +129,13 @@ describe("Result Success Testing", function() {
   body[0].append(Div);
   // Combinators
   // Descendant combinator
-  // it("element: <a/>, string: ::selection", function() {
-  //   expect(matchSelector(Div, '::selection')).to.be.equal(true);
-  // });
+  it("element: <div/>, string: div div", function() {
+    expect(matchSelector(ChildDiv, 'div div')).to.be.equal(true);
+  });
+  it("element: <span/>, string: body div span", function() {
+    expect(matchSelector(ChildSpan, 'body div span')).to.be.equal(true);
+  });
+  it("element: <span/>, string: body * p", function() {
+    expect(matchSelector(ChildP, 'body * p')).to.be.equal(true);
+  });
 });

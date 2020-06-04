@@ -1,5 +1,6 @@
 const CSSwhat = require('css-what');
 const { match } = require('./match.js');
+// const { setAttributes } = require('./util.js');
 // const jsdom = require('jsdom');
 // const { JSDOM } = jsdom;
 
@@ -64,14 +65,19 @@ function findElementIndex(element) {
 function findAncestor(element, tag) {
   let hasTargetAncestor = false;
   while (element.parentElement) {
-    if(findParent(element, tag)){
-      hasTargetAncestor = true;
+    const result = findParent(element, tag);
+    if(result.isMatch){
+      hasTargetAncestor = result.isMatch;
+      element = result.element;
       break;
     }else {
       element = element.parentElement;
     }
   }
-  return hasTargetAncestor;
+  return {
+    isMatch: hasTargetAncestor,
+    element
+  }
 }
 
 function findParent(element, tag) {
@@ -79,13 +85,16 @@ function findParent(element, tag) {
   if(hasParent){
     element = element.parentElement;
   }
-  return hasParent;
+  return {
+    isMatch: hasParent,
+    element
+  }
 }
 
 function findCloseBrother(element, tag) {
   const brothers = getParentChildren(element);
   const index = findElementIndex(element);
-  return brothers[index - 1] && isTarget(brothers[index - 1], tag);
+  return brothers[index - 1] && isTarget(brothers[index - 1], tag)
 }
 
 function findOlderBrother(element, tag) {
@@ -101,26 +110,40 @@ function findOlderBrother(element, tag) {
   return hasBrother;
 }
 
+function mergerMatchStatusAndElement(element, isMatch, next) {
+  if(typeof next === 'boolean'){
+    isMatch = next;
+  }
+  if(typeof next === 'object'){
+    element = next.element;
+    isMatch = next.isMatch;
+  }
+  return {
+    element, isMatch
+  }
+}
+
 function isTagExist(element, tag, mode) {
+  let isMatch = false;
   if(mode === 'closeBrother') {
     // 相邻兄弟选择器: Next-sibling combinator
     // value: "plus sign" (U+002B, +)
-    return findCloseBrother(element, tag)
+    return mergerMatchStatusAndElement(element, false, findCloseBrother(element, tag));
   }else if(mode === 'ancestor') {
     // 后代选择器: Descendant combinator
     // value: whitespace
-    return findAncestor(element, tag);
+    return mergerMatchStatusAndElement(element, false, findAncestor(element, tag));
   }else if (mode === 'parent') {
     // 子元素选择器: Child combinators
     // value: "greater-than sign" (U+003E, >)
-    return findParent(element, tag);
+    return mergerMatchStatusAndElement(element, false, findParent(element, tag));
   }else if (mode === 'olderBrother') {
     // 后继同胞选择器: subsequent-sibling combinator (弟弟选择器😜)
     // value: "tilde" (U+007E, ~)
-    return findOlderBrother(element, tag);
+    return mergerMatchStatusAndElement(element, false, findOlderBrother(element, tag));
   }
   // no combinators means
-  return isTarget(element, tag);
+  return mergerMatchStatusAndElement(element, false, isTarget(element, tag));
 }
 
 // sycn update element's attribute
@@ -380,7 +403,7 @@ function matchSelector(element, selector) {
   try {
     // split selector & match order by local element
     const allSelector = CSSwhat.parse(selector);
-    // console.log('allSelector', JSON.stringify(allSelector));
+    console.log('allSelector', JSON.stringify(allSelector));
     // init attributes by local element
     let attributes = updateAttributes(element);
     let searchMode;
@@ -395,7 +418,9 @@ function matchSelector(element, selector) {
           isMatch = judgeAttribute(attributes, selector[i]);
         }else if(type === 'tag') {
           const { name } = selector[i];
-          isMatch = isTagExist(element, name, searchMode);
+          const result = isTagExist(element, name, searchMode);
+          isMatch = result.isMatch;
+          element = result.element;
           // 重置 搜索模式
           searchMode = void 0;
         }else if(type === 'adjacent') {
@@ -464,10 +489,13 @@ function matchSelector(element, selector) {
 //
 // const body = document.getElementsByTagName('body');
 //
-// const A = document.createElement('a');
-// body[0].append(A);
-// matchSelector(A, ':root()')
-
+// const Div = document.createElement('div');
+// // setAttributes(Div, { id: 'parent' })
+// const ChildSpan = document.createElement('span');
+// // setAttributes(ChildDiv, { id: 'child' })
+// Div.appendChild(ChildSpan);
+// body[0].append(Div);
+// matchSelector(ChildSpan, 'body * span')
 
 module.exports = {
   matchSelector

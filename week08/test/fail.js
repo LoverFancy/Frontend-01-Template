@@ -133,5 +133,13 @@ describe("Result Failed Testing", function() {
   });
   // Combinators
   // Descendant combinator
-  //
+  it("element: <div/>, string: div div div", function() {
+    expect(matchSelector(ChildDiv, 'div div div')).to.be.equal(false);
+  });
+  it("element: <div/>, string: div div p", function() {
+    expect(matchSelector(ChildDiv, 'div div p')).to.be.equal(false);
+  });
+  it("element: <div/>, string: p div", function() {
+    expect(matchSelector(ChildDiv, 'p div')).to.be.equal(false);
+  });
 });
