@@ -108,8 +108,8 @@ describe("Result Success Testing", function() {
     expect(matchSelector(A, 'a:nth-child(+3n-0)')).to.be.equal(true);
   });
   // negation pseudo class
-  it("element: <a/>, string: :not", function() {
-    expect(matchSelector(A, ':not(disabled)')).to.be.equal(true);
+  it("element: <a/>, string: :not(.disabled)", function() {
+    expect(matchSelector(A, ':not(.disabled)')).to.be.equal(true);
   });
   // Pseudo elements class
   it("element: <a/>, string: ::after", function() {
@@ -135,7 +135,45 @@ describe("Result Success Testing", function() {
   it("element: <span/>, string: body div span", function() {
     expect(matchSelector(ChildSpan, 'body div span')).to.be.equal(true);
   });
-  it("element: <span/>, string: body * p", function() {
+  it("element: <p/>, string: body * p", function() {
     expect(matchSelector(ChildP, 'body * p')).to.be.equal(true);
+  });
+  const ChildChildDiv = document.createElement('div');
+  setAttributes(ChildChildDiv, { title: 'abc', href: '' });
+  ChildP.appendChild(ChildChildDiv);
+  it("element: <div/>, string: div p *[href]", function() {
+    expect(matchSelector(ChildChildDiv, 'div p *[href]')).to.be.equal(true);
+  });
+  it("element: <div/>, string: div p *[title='abc']", function() {
+    expect(matchSelector(ChildChildDiv, "div p *[title='abc']")).to.be.equal(true);
+  });
+  // Child combinators
+  it("element: <div/>, string: body > div", function() {
+    expect(matchSelector(Div, "body > div")).to.be.equal(true);
+  });
+  const ChildChildA = document.createElement('a');
+  ChildDiv.appendChild(ChildChildA);
+  it("element: <div/>, string: body div > div a", function() {
+    expect(matchSelector(ChildChildA, "body div > div a")).to.be.equal(true);
+  });
+  // Sibling combinators
+  const ChildChildSpan = document.createElement('span');
+  setAttributes(ChildChildA, { class: 'childchilda' });
+  ChildDiv.appendChild(ChildChildSpan);
+  // Next-sibling combinator
+  it("element: <span />, string: .childchilda + span", function() {
+    expect(matchSelector(ChildChildSpan, ".childchilda + span")).to.be.equal(true);
+  });
+  // Subsequent-sibling combinator
+  const ChildChildP = document.createElement('p');
+  ChildDiv.insertBefore(ChildChildP, ChildChildA);
+  it("element: <span />, string: .childchilda ~ span", function() {
+    expect(matchSelector(ChildChildSpan, ".childchilda ~ span")).to.be.equal(true);
+  });
+  it("element: <span />, string: a ~ span", function() {
+    expect(matchSelector(ChildChildSpan, "a ~ span")).to.be.equal(true);
+  });
+  it("element: <span />, string: p ~ span", function() {
+    expect(matchSelector(ChildChildSpan, "p ~ span")).to.be.equal(true);
   });
 });

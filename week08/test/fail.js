@@ -106,7 +106,7 @@ describe("Result Failed Testing", function() {
     expect(matchSelector(A, 'a:nth-child(+3n-9n)')).to.be.equal(false);
   });
   // negation pseudo class
-  it("element: <a/>, string: :not", function() {
+  it("element: <a/>, string: :not(:not(a))", function() {
     expect(matchSelector(A, ':not(:not(a))')).to.be.equal(false);
   });
   it("element: <a/>, string: a:not", function() {
@@ -141,5 +141,41 @@ describe("Result Failed Testing", function() {
   });
   it("element: <div/>, string: p div", function() {
     expect(matchSelector(ChildDiv, 'p div')).to.be.equal(false);
+  });
+  const ChildChildDiv = document.createElement('div');
+  setAttributes(ChildChildDiv, { title: 'a b c', ssr: 'ssr' });
+  ChildP.appendChild(ChildChildDiv);
+  it("element: <div/>, string: div p *[href]", function() {
+    expect(matchSelector(ChildChildDiv, 'div p *[href]')).to.be.equal(false);
+  });
+  it("element: <div/>, string: div p *[title='abc']", function() {
+    expect(matchSelector(ChildChildDiv, "div p *[title='abc']")).to.be.equal(false);
+  });
+  // Child combinators
+  it("element: <div/>, string: body > p", function() {
+    expect(matchSelector(Div, "body > p")).to.be.equal(false);
+  });
+  const ChildChildA = document.createElement('a');
+  ChildDiv.appendChild(ChildChildA);
+  it("element: <div/>, string: body div > div", function() {
+    expect(matchSelector(ChildChildA, "body div > div p")).to.be.equal(false);
+  });
+  // Sibling combinators
+  const ChildChildSpan = document.createElement('span');
+  setAttributes(ChildChildA, { class: 'childchildP' });
+  ChildDiv.appendChild(ChildChildSpan);
+  // Next-sibling combinator
+  it("element: <span />, string: .childchilda + span", function() {
+    expect(matchSelector(ChildChildSpan, ".childchilda + span")).to.be.equal(false);
+  });
+  // Subsequent-sibling combinator
+  const ChildChildP = document.createElement('p');
+  setAttributes(ChildChildA, { class: 'childchildA' });
+  ChildDiv.insertBefore(ChildChildP, ChildChildA);
+  it("element: <span />, string: p.childchilda ~ span", function() {
+    expect(matchSelector(ChildChildSpan, "p.childchilda ~ span")).to.be.equal(false);
+  });
+  it("element: <span />, string: h1 ~ span", function() {
+    expect(matchSelector(ChildChildSpan, "h1 ~ span")).to.be.equal(false);
   });
 });

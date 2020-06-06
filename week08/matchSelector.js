@@ -6,7 +6,20 @@ const { match } = require('./match.js');
 
 const ID_OR_CLASS = ['id', 'class'];
 
-const uniqueSymbol = Symbol('uuid');
+// const uniqueSymbol = Symbol('uuid');
+function uuid() {
+  const s = [];
+  const hexDigits = "0123456789abcdef";
+  for (let i = 0; i < 36; i++) {
+    s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+  }
+  s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
+  s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
+  s[8] = s[13] = s[18] = s[23] = "-";
+  const uuid = s.join("");
+  return 'Uuid'+uuid;
+}
+const uniqueSymbol = uuid();
 
 // pseudo element
 const VAILD_PSEUDO_ELEMENT = ['first-line', 'first-letter', 'before', 'after'];
@@ -36,6 +49,19 @@ const VAILD_PSEUDO_CLASS_FUNCTION = LANGUAGE_PSEUDO_CLASS.concat(STRUCTURAL_PSEU
 const TAG_A_VAILD_PSEUDO_CLASS = ['link', 'visited'];
 
 const TAG_RADIO_AND_CHECKBOX_VAILD_PSEUDO_CLASS = ['checked', 'indeterminate'];
+// ident     [-]?{nmstart}{nmchar}*
+// name      {nmchar}+
+// nmstart   [_a-z]|{nonascii}|{escape}
+// nonascii  [^\0-\177]
+// unicode   \\[0-9a-f]{1,6}(\r\n|[ \n\r\t\f])?
+// escape    {unicode}|\\[^\n\r\f0-9a-f]
+// nmchar    [_a-z0-9-]|{nonascii}|{escape}
+const nonascii = '[^\0-\177]';
+const unicode = '\\[0-9a-f]{1,6}(\r\n|[ \n\r\t\f])?';
+const escape = `${unicode}|\\[^\n\r\f0-9a-f]`;
+const nmstart = `[_a-z]|${nonascii}|${escape}`;
+const nmchar = `[_a-z0-9-]|${nonascii}|${escape}`;
+const ident = `[-]?${nmstart}${nmchar}*`;
 
 // functions deal with tag
 function isTarget(element, tag) {
@@ -54,7 +80,7 @@ function findElementIndex(element) {
   const { children } = element.parentElement;
   let index = -1;
   for(let i = 0; i < children.length; i++){
-    if(children[i].getAttributes(uniqueSymbol)){
+    if(children[i].getAttribute(uniqueSymbol)){
       index = i;
       break;
     }
@@ -62,10 +88,10 @@ function findElementIndex(element) {
   return index;
 }
 
-function findAncestor(element, tag) {
+function findAncestor({ element, tag, selector }) {
   let hasTargetAncestor = false;
   while (element.parentElement) {
-    const result = findParent(element, tag);
+    const result = findParent({ element, tag, selector });
     if(result.isMatch){
       hasTargetAncestor = result.isMatch;
       element = result.element;
@@ -80,8 +106,14 @@ function findAncestor(element, tag) {
   }
 }
 
-function findParent(element, tag) {
-  const hasParent = isTarget(element.parentElement, tag);
+function findParent({ element, tag, selector }) {
+  let hasParent = false;
+  if(tag){
+    hasParent = isTarget(element.parentElement, tag);
+  }else if(selector) {
+    const attributes = updateAttributes(element.parentElement);
+    hasParent = judgeAttribute(attributes, selector);
+  }
   if(hasParent){
     element = element.parentElement;
   }
@@ -91,23 +123,46 @@ function findParent(element, tag) {
   }
 }
 
-function findCloseBrother(element, tag) {
+function findCloseBrother({ element, tag, selector }) {
   const brothers = getParentChildren(element);
   const index = findElementIndex(element);
-  return brothers[index - 1] && isTarget(brothers[index - 1], tag)
+  let isMatch = false;
+  const nextSibingElement = brothers[index - 1];
+  if(nextSibingElement){
+    if(tag){
+      isMatch = isTarget(nextSibingElement, tag);
+    }else if(selector) {
+      const attributes = updateAttributes(nextSibingElement);
+      isMatch = judgeAttribute(attributes, selector);
+    }
+  }
+  return {
+    isMatch,
+    element: isMatch ? nextSibingElement : element
+  }
 }
 
-function findOlderBrother(element, tag) {
+function findOlderBrother({ element, tag, selector }) {
   const brothers = getParentChildren(element);
   const index = findElementIndex(element);
   let hasBrother = false;
+  let sibingElement = null;
   for(let i = index; i >= 0; i--){
-    hasBrother = isTarget(brothers[i], tag);
+    sibingElement = brothers[i];
+    if(tag){
+      hasBrother = isTarget(sibingElement, tag);
+    }else if(selector) {
+      const attributes = updateAttributes(sibingElement);
+      hasBrother = judgeAttribute(attributes, selector);
+    }
     if(hasBrother){
       break;
     }
   }
-  return hasBrother;
+  return {
+    isMatch: hasBrother,
+    element: hasBrother ? sibingElement : element
+  };
 }
 
 function mergerMatchStatusAndElement(element, isMatch, next) {
@@ -128,19 +183,19 @@ function isTagExist(element, tag, mode) {
   if(mode === 'closeBrother') {
     // 相邻兄弟选择器: Next-sibling combinator
     // value: "plus sign" (U+002B, +)
-    return mergerMatchStatusAndElement(element, false, findCloseBrother(element, tag));
+    return mergerMatchStatusAndElement(element, false, findCloseBrother({ element, tag }));
   }else if(mode === 'ancestor') {
     // 后代选择器: Descendant combinator
     // value: whitespace
-    return mergerMatchStatusAndElement(element, false, findAncestor(element, tag));
+    return mergerMatchStatusAndElement(element, false, findAncestor({ element, tag }));
   }else if (mode === 'parent') {
     // 子元素选择器: Child combinators
     // value: "greater-than sign" (U+003E, >)
-    return mergerMatchStatusAndElement(element, false, findParent(element, tag));
+    return mergerMatchStatusAndElement(element, false, findParent({ element, tag }));
   }else if (mode === 'olderBrother') {
     // 后继同胞选择器: subsequent-sibling combinator (弟弟选择器😜)
     // value: "tilde" (U+007E, ~)
-    return mergerMatchStatusAndElement(element, false, findOlderBrother(element, tag));
+    return mergerMatchStatusAndElement(element, false, findOlderBrother({ element, tag }));
   }
   // no combinators means
   return mergerMatchStatusAndElement(element, false, isTarget(element, tag));
@@ -187,19 +242,6 @@ function isIdentifiers(data) {
   if(data === null) {
     return false
   }
-  // ident     [-]?{nmstart}{nmchar}*
-  // name      {nmchar}+
-  // nmstart   [_a-z]|{nonascii}|{escape}
-  // nonascii  [^\0-\177]
-  // unicode   \\[0-9a-f]{1,6}(\r\n|[ \n\r\t\f])?
-  // escape    {unicode}|\\[^\n\r\f0-9a-f]
-  // nmchar    [_a-z0-9-]|{nonascii}|{escape}
-  const nonascii = '[^\0-\177]';
-  const unicode = '\\[0-9a-f]{1,6}(\r\n|[ \n\r\t\f])?';
-  const escape = `${unicode}|\\[^\n\r\f0-9a-f]`;
-  const nmstart = `[_a-z]|${nonascii}|${escape}`;
-  const nmchar = `[_a-z0-9-]|${nonascii}|${escape}`;
-  const ident = `[-]?${nmstart}${nmchar}*`;
   const dataVaildRegExp = new RegExp(ident);
   return dataVaildRegExp.test(data);
 }
@@ -231,7 +273,8 @@ function isVaildSelectorListArgument(data) {
   return true
 }
 function isNestingNot(data) {
-  return data[0][0].name === 'not' ? true : false
+  // not may in data[0]'s everywhere
+  return data[0].some((i) => i.name === 'not');
 }
 
 function isVaildNegationPseudoClass(selector) {
@@ -243,14 +286,31 @@ function isVaildNegationPseudoClass(selector) {
     }
     // may be will support Selector list argument in future
     if(data.length === 1){
-      // TODO: 逻辑不严谨
-      // type selector：例如 div
-      // universal selector：例如 *
-      // attribute selector：例如 div[foo]
-      // class selector：例如 .myclass
-      // ID selector：例如 #myid
       // pseudo-class：例如 a:hover
-      return true
+      const typeTest = /[A-Za-z0-9]+(\-[A-Za-z0-9]+)*/;
+      let isVaild = true;
+      data.some((i) => {
+        const { type, name } = i;
+        if(['universal', 'attribute'].includes(type)) {
+          // type selector || attribute selectors (class\id\other attribute)
+          isVaild = true;
+        }else if(type === 'tag') {
+          // type selector
+          isVaild = typeTest.test(localTag);
+        }else if (type === 'pseudo') {
+          // pseudo-class selector
+          // simplify test
+          const pseudoClassSet = NORMAL_VAILD_PSEUDO_CLASS.concat(
+            TAG_A_VAILD_PSEUDO_CLASS
+          ).concat(
+            TAG_RADIO_AND_CHECKBOX_VAILD_PSEUDO_CLASS
+          );
+          isVaild = pseudoClassSet.includes(name);
+        }
+
+        return !isVaild
+      })
+      return isVaild
     }
   }
   return false
@@ -258,7 +318,11 @@ function isVaildNegationPseudoClass(selector) {
 
 function isVaildPseudoClass(element, selector) {
   const { name, data } = selector;
-  if(VAILD_PSEUDO_CLASS_FUNCTION.includes(name)){
+  // 兼容 css 2.1 中的 pseudo-element-selectors
+  // https://www.w3.org/TR/2011/REC-CSS2-20110607/selector.html#pseudo-element-selectors
+  if(VAILD_PSEUDO_ELEMENT.includes(name)){
+    return true;
+  }else if(VAILD_PSEUDO_CLASS_FUNCTION.includes(name)){
     if(!data) {
       return false
     }
@@ -334,10 +398,32 @@ function matchHeader(value, attribute, sign = true) {
   return false;
 }
 
+function isAttributesExist(attributes, selector, element, mode) {
+  if(mode === 'closeBrother') {
+    // 相邻兄弟选择器: Next-sibling combinator
+    // value: "plus sign" (U+002B, +)
+    return mergerMatchStatusAndElement(element, false, findCloseBrother({ element, selector }));
+  }else if(mode === 'ancestor') {
+    // 后代选择器: Descendant combinator
+    // value: whitespace
+    return mergerMatchStatusAndElement(element, false, findAncestor({ element, selector }));
+  }else if (mode === 'parent') {
+    // 子元素选择器: Child combinators
+    // value: "greater-than sign" (U+003E, >)
+    return mergerMatchStatusAndElement(element, false, findParent({ element, selector }));
+  }else if (mode === 'olderBrother') {
+    // 后继同胞选择器: subsequent-sibling combinator (弟弟选择器😜)
+    // value: "tilde" (U+007E, ~)
+    return mergerMatchStatusAndElement(element, false, findOlderBrother({ element, selector }));
+  }
+  // no combinators means
+  return mergerMatchStatusAndElement(element, false, judgeAttribute(attributes, selector));
+}
+
 function judgeAttribute(attributes, selector) {
   const { name, value } = selector;
   if(ID_OR_CLASS.includes(name)) {
-    return attributes[name] && attributes[name].includes(value);
+    return !!attributes[name] && attributes[name].includes(value);
   }
   // Attribute presence and value selectors
   const { action } = selector;
@@ -350,7 +436,7 @@ function judgeAttribute(attributes, selector) {
     // 精确匹配: [att=val]
     // Represents an element with the att attribute whose value is exactly "val".
     // 元素属性的值 === val
-    return attributes[name] && attributes[name] === value;
+    return !!attributes[name] && attributes[name] === value;
   }else if (action === 'element') {
     // 多种匹配: [att~=val]
     // Represents an element with the att attribute whose value is a whitespace-separated list of words,
@@ -362,7 +448,7 @@ function judgeAttribute(attributes, selector) {
     if(value === ''){
       return false
     }else {
-      return attributes[name] && attributes[name].split(' ').includes(value);
+      return !!attributes[name] && attributes[name].split(' ').includes(value);
     }
   }else if (action === 'hyphen') {
     // 开头可选连字符匹配: [att|=val]
@@ -385,7 +471,7 @@ function judgeAttribute(attributes, selector) {
     // Represents an element with the att attribute whose value contains at least one instance of the substring "val".
     // If "val" is the empty string then the selector does not represent anything.
     // match function 是之前写的 基于 状态机的 匹配函数
-    return attributes[name] && match(value, attributes[name]);
+    return !!attributes[name] && match(value, attributes[name]);
   }
   return false
 }
@@ -403,7 +489,7 @@ function matchSelector(element, selector) {
   try {
     // split selector & match order by local element
     const allSelector = CSSwhat.parse(selector);
-    console.log('allSelector', JSON.stringify(allSelector));
+    // console.log('allSelector', JSON.stringify(allSelector));
     // init attributes by local element
     let attributes = updateAttributes(element);
     let searchMode;
@@ -415,7 +501,13 @@ function matchSelector(element, selector) {
       while(i < selector.length) {
         const { type } = selector[i];
         if(type === 'attribute') {
-          isMatch = judgeAttribute(attributes, selector[i]);
+          // isMatch = judgeAttribute(attributes, selector[i], element, searchMode);
+          // attributes, selector, element, mode
+          const result = isAttributesExist(attributes, selector[i], element, searchMode);
+          isMatch = result.isMatch;
+          element = result.element;
+          // 重置 搜索模式
+          searchMode = void 0;
         }else if(type === 'tag') {
           const { name } = selector[i];
           const result = isTagExist(element, name, searchMode);
@@ -490,12 +582,18 @@ function matchSelector(element, selector) {
 // const body = document.getElementsByTagName('body');
 //
 // const Div = document.createElement('div');
-// // setAttributes(Div, { id: 'parent' })
 // const ChildSpan = document.createElement('span');
-// // setAttributes(ChildDiv, { id: 'child' })
+// const ChildChildA = document.createElement('a');
+// setAttributes(ChildChildA, { class: 'childchilda' });
+// Div.appendChild(ChildChildA);
 // Div.appendChild(ChildSpan);
 // body[0].append(Div);
-// matchSelector(ChildSpan, 'body * span')
+//
+// const ChildChildP = document.createElement('p');
+// setAttributes(ChildChildA, { class: 'childchildA' });
+// Div.insertBefore(ChildChildP, ChildChildA);
+//
+// matchSelector(ChildSpan, "p.childchilda ~ span")
 
 module.exports = {
   matchSelector
