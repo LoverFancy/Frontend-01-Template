@@ -14,6 +14,6 @@
 
 - [all Css Properties from w3c standard](./collection/w3cStandardsCssProperty.json)
 
-- [css properties mind node preview](./cssProperty.pdf)
+- [css properties mind node preview](./cssProperties.pdf)
 
 - ![css properties mind node preview](./cssProperties.png)
