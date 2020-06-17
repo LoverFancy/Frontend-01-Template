@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style>
+      :root {
+        --main-bg-color: coral;
+      }
+    </style>
+    <style>
+      div {
+        background-color: var(--main-bg-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div id='a'>
+      <div>1</div>
+      <div>2</div>
+      <div>3</div>
+      <div>4</div>
+      <div>5</div>
+    </div>
+    <script>
+    let element = document.getElementById("a");
+    function reverseChildren(element) {
+      const range = new Range()
+      //选中
+      range.selectNodeContents(element);
+      let fragment = range.extractContents();
+      let length = fragment.childNodes.length;
+      while (length--) {
+          fragment.appendChild(fragment.childNodes[length])
+      }
+      element.appendChild(fragment)
+    }
+    reverseChildren(element)
+    </script>
+  </body>
+</html>
