@@ -96,28 +96,36 @@ function sleep(t) {
 
 async function findPath(map, start, end) {
   map = map.slice();
-  console.log('map', map);
+  let table = new Array(10000).fill(Infinity);
 
+  table[start[1] * 100 + start[0]] = 0;
   function distance([x, y]) {
     return (x - end[0]) ** 2 + (y - end[1]) ** 2;
   }
 
   // let collection = new Sorted([start], (a, b) => distance(a) - distance(b)).take();
-  console.log(start);
+  
 
-  let collection = new BinaryHeap([start], (a, b) => distance(a) - distance(b));
+  let collection = new Sorted([start], (a, b) => distance(a) - distance(b));
 
   // container.children[5050].style.backgroundColor = 'red';
 
-  async function insert([x, y], pre) {
+  async function insert([x, y], pre, fromStart) {
     // todo
-    if (map[100 * y + x] !== 0) {
+    // if (map[100 * y + x] !== 0) {
+    //   return;
+    // }
+    if (map[100 * y + x] === 1) {
       return;
     }
     if (x < 0 || y < 0 || x >= 100 || y >= 100) {
       return;
     }
+    if (fromStart >= table[100 * y + x]) {
+      return;
+    }
     map[100 * y + x] = pre;
+    table[100 * y + x] = fromStart;
     await sleep(5);
     container.children[y * 100 + x].style.backgroundColor = 'lightgreen';
     collection.insert([x, y]);
@@ -126,6 +134,7 @@ async function findPath(map, start, end) {
   while (collection.length) {
     // let [x, y] = collection.shift();
     let [x, y] = collection.take();
+    let fromStart = table[100 * y + x];
 
     if (x === end[0] && y === end[1]) {
       let path = [];
@@ -143,10 +152,10 @@ async function findPath(map, start, end) {
     let top = y - 1;
     let bottom = y + 1;
     let preSite = [x, y];
-    await insert([left, y], preSite);
-    await insert([right, y], preSite);
-    await insert([x, top], preSite);
-    await insert([x, bottom], preSite);
+    await insert([left, y], preSite, fromStart + 1);
+    await insert([right, y], preSite, fromStart + 1);
+    await insert([x, top], preSite, fromStart + 1);
+    await insert([x, bottom], preSite, fromStart + 1);
 
     // await insert([left, top], preSite);
 
@@ -161,28 +170,28 @@ async function findPath(map, start, end) {
     //   container.children[y * 100 + x].style.backgroundColor = 'blue';
     // }
     if (map[top * 100 + x] !== 1 && map[y * 100 + left] !== 1) {
-      await insert([left, top], preSite);
+      await insert([left, top], preSite, fromStart + 1.4);
     }
     // if (map[top * 100 + x] === 1 && map[y * 100 + right] === 1) {
     //   await sleep(1);
     //   container.children[y * 100 + x].style.backgroundColor = 'blue';
     // }
     if (map[top * 100 + x] !== 1 && map[y * 100 + right] !== 1) {
-      await insert([right, top], preSite);
+      await insert([right, top], preSite, fromStart + 1.4);
     }
     // if (map[bottom * 100 + x] === 1 && map[y * 100 + left] === 1) {
     //   await sleep(1);
     //   container.children[y * 100 + x].style.backgroundColor = 'blue';
     // }
     if (map[bottom * 100 + x] !== 1 && map[y * 100 + left] !== 1) {
-      await insert([left, bottom], preSite);
+      await insert([left, bottom], preSite, fromStart + 1.4);
     }
     // if (map[bottom * 100 + x] === 1 && map[y * 100 + right] === 1) {
     //   await sleep(1);
     //   container.children[y * 100 + x].style.backgroundColor = 'blue';
     // }
     if (map[bottom * 100 + x] !== 1 && map[y * 100 + right] !== 1) {
-      await insert([right, bottom], preSite);
+      await insert([right, bottom], preSite, fromStart + 1.4);
     }
   }
 
