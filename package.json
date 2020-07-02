@@ -1,0 +1,11 @@
+{
+  "name": "Frontend-01-Template",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:jay0815/Frontend-01-Template.git",
+  "author": "jack <543612779@qq.com>",
+  "license": "MIT",
+  "dependencies": {
+    "jslint": "^0.12.1"
+  }
+}
