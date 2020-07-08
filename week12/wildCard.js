@@ -36,8 +36,10 @@ function find(source, pattern) {
 
     reg.lastIndex = lastIndex;
 
-    reg.exec(source);
-
+    if(!reg.exec(source)){
+      reg.exec(source);
+    }
+    
     lastIndex = reg.lastIndex;
   }
 
