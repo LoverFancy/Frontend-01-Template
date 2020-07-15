@@ -39,7 +39,7 @@ export class Pure {
     console.log('this.root', this.root);
     this.root.setAttribute(name, value);
   }
-  
+
   appendChild(child) {
     this.props.get('children').push(child);
   }

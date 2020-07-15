@@ -4,7 +4,7 @@ import {
 // const createElement = (target, property, ...children) => {
 //   let name = 'div';
 //   if (typeof target === 'string') {
-//     name = target;    
+//     name = target;
 //   } else {
 //     name = target.name;
 //   }
@@ -51,10 +51,10 @@ class Parent extends Pure {
   constructor(){
     super();
     console.log(this);
-    
+
   }
   render() {
-    
+
     return <div>
       <header > {this.props.get('title')} </header>
       <content>
@@ -191,19 +191,10 @@ class Carousel extends Pure {
     });
 
     setTimeout(nextPicture, 3000);
-    
+
     return container;
   }
 }
-
-// let carousel = new Carousel();
-
-// data
-
-
-
-// mount 
-// document.getElementById('container').appendChild(carousel.root);
 
 const component = (
   <Carousel data = {
