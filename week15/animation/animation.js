@@ -1,7 +1,3 @@
-export function animation(params) {
-  
-}
-
 export class Animation {
   constructor({ object, property, template, start, end, duration, timingFC, delay }) {
     this.object = object;
@@ -80,7 +76,7 @@ export class Timeline {
 
       let value = animation.valueFromProgression(progression)
       object[property] = template(value);
-      
+
     }
 
     if (animations.length) {
@@ -89,7 +85,7 @@ export class Timeline {
       this.state = 'init';
     }
   }
-  
+
 
   add(animation, startTime) {
     animation.finished = false;
