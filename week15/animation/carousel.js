@@ -28,7 +28,7 @@ class Carousel {
 
     let tl = this.timeLine;
 
-    let nextPicture =  () => {
+    let nextPicture = () => {
 
       const nextPosition = (position + 1) % this.data.length;
       const lastPosition = (this.data.length + position - 1) % this.data.length;
