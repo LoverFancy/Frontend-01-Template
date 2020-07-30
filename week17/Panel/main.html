@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>carousel component</title>
+  <style>
+    .tabpanel {
+      border: solid 1px lightgreen;
+      width: 300px;
+
+    }
+    .tabpanel > .tabpanel-child {
+        display: none;
+        width: 300px;
+        min-height: 300px;
+    }
+    .tabpanel > .selected {
+      display: initial;
+    }
+    .tabpanel > .title {
+      display: flex;
+    }
+    .tabpanel > .title > .tabpanel-title {
+      background-color: lightgreen;
+      width: 100px; margin: 0px;
+    }
+  </style>
+</head>
+<body>
+  <div id='container'></div>
+  <script src="./main.js"></script>
+</body>
+</html>
