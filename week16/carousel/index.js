@@ -64,12 +64,17 @@ class Carousel extends Component  {
 
       const onPanend = (event) => {
         let direction = 0;
-        const { clientX, startX } = event.detail;
+        const {
+          clientX,
+          startX,
+          isFilck
+        } = event.detail;
         let dx = clientX - startX;
 
-        if(dx + offset > 250){
+        if (dx + offset > 250) {
+        if (dx + offset > 250 || (dx > 0 && isFilck)) {
           direction = 1;
-        } else if (dx + offset < -250) {
+        } else if (dx + offset < -250 || (dx < 0 && isFilck)) {
           direction = -1;
         }
 
