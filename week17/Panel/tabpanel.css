@@ -1,0 +1,24 @@
+.tabpanel {
+  border: solid 1px lightgreen;
+  width: 300px;
+}
+
+.tabpanel>.tabpanel-child {
+  display: none;
+  width: 300px;
+  min-height: 300px;
+}
+
+.tabpanel>.selected {
+  display: initial;
+}
+
+.tabpanel>.title {
+  display: flex;
+}
+
+.tabpanel>.title>.tabpanel-title {
+  background-color: lightgreen;
+  width: 100px;
+  margin: 0px;
+}

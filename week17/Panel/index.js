@@ -1,4 +1,6 @@
-import { ToyReactDOM } from './pure';
+import {
+  ToyReact, ToyReactDOM
+} from './pure';
 import {
   TabPanel
 } from './TabPanel';
@@ -6,7 +8,7 @@ import {
   ListView
 } from './ListView';
 // @ts-ignore
-import css from './carousel.css';
+import css from './tabpanel.css';
 
 const panel = (
   <TabPanel>

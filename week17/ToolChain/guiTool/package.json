@@ -1,0 +1,11 @@
+{
+  "name": "CommandLineTool",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "jack",
+  "license": "MIT",
+  "dependencies": {
+    "tty": "^1.0.1",
+    "ttys": "^0.0.3"
+  }
+}
