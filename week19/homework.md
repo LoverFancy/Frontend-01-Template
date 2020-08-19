@@ -2,7 +2,7 @@
 
 ### 完成工具链
 
-- [toy-tool-chain](./toy-tool-chain)
+- [tool-chain](./tool-chain)
 
 ### 写完 publish-sever 和 publish-tool，完成发布系统
 
