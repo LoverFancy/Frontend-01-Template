@@ -2,18 +2,9 @@ const http = require('http');
 // const fs = require('fs');
 const unzipper = require('unzipper');
 
-// fs.createReadStream('path/to/archive.zip')
-//   .pipe(unzipper.Extract({
-//     path: 'output/path'
-//   }));
-
 // Create an HTTP tunneling proxy
-const server = http.createServer((req, res) => {
-  // let mathced = req.url.match(/filename=([^&]+)/)
-  // let filename = mathced && mathced[1];
-  // if (!filename) {
-  //   return
-  // }
+const server = http.createServer(async (req, res) => {
+
   let writeStream = unzipper.Extract({
     path: '../server/public/'
   })
