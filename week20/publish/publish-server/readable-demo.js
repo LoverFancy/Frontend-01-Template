@@ -1,5 +1,5 @@
 const http = require('http');
-const readableToString = require('./utils.js');
+const { readableToString } = require('./utils.js');
 
 // Create an HTTP tunneling proxy
 const server = http.createServer(async (req, res) => {
