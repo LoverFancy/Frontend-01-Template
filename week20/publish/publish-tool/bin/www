@@ -1,0 +1,193 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('publish-tool:server');
+var http = require('http');
+const axios = require('axios');
+const child_process = require('child_process');
+const fs = require('fs');
+var archiver = require('archiver');
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '8080');
+app.set('port', port);
+
+/**
+ * Get publish auth token
+ */
+
+const redirect_uri = encodeURIComponent("http://localhost:8081/auth");
+
+child_process.exec(
+  `open https://github.com/login/oauth/authorize?client_id=Iv1.99fc6202d3e82a0a&redirect_uri=${redirect_uri}&scope=read%3Auser&state=321cba`
+)
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+app.get('/publish',
+  function (req, res) {
+  const token = req.url.match(/access_token=([^&]+)/)[1];
+
+  const packagename = 'package';
+
+  // create a file to stream archive data to.
+  const output = fs.createWriteStream(__dirname + '/package.zip');
+  const archive = archiver('zip', {
+    zlib: {
+      level: 9
+    } // Sets the compression level.
+  });
+
+  // listen for all archive data to be written
+  // 'close' event is fired only when a file descriptor is involved
+  // output.on('close', function () {
+  //   console.log(archive.pointer() + ' total bytes');
+  //   console.log('archiver has been finalized and the output file descriptor has closed.');
+  //   console.log('here');
+  // });
+
+  // This event is fired when the data source is drained no matter what was the data source.
+  // It is not part of this library but rather from the NodeJS Stream API.
+  // @see: https://nodejs.org/api/stream.html#stream_event_end
+  output.on('end', function () {
+    console.log('Data has been drained');
+  });
+
+  // good practice to catch warnings (ie stat failures and other non-blocking errors)
+  archive.on('warning', function (err) {
+    if (err.code === 'ENOENT') {
+      // log warning
+    } else {
+      // throw error
+      throw err;
+    }
+  });
+
+  // good practice to catch this error explicitly
+  archive.on('error', function (err) {
+    throw err;
+  });
+
+  // pipe archive data to the file
+  archive.pipe(output);
+
+  // append files from a sub-directory and naming it `new-subdir` within the archive
+  archive.directory(packagename, false);
+
+  // finalize the archive (ie we are done appending files but streams have to finish yet)
+  // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
+  archive.finalize();
+
+  const options = {
+    host: '127.0.0.1',
+    port: 8081,
+    path: '/publish?filename=' + packagename + '.zip',
+    method: 'POST',
+    headers: {
+      token: token,
+      'Content-Type': 'application/octet-stream'
+    }
+  };
+
+  const requset = http.request(options, (res) => {
+    console.log(`STATUS: ${res.statusCode}`);
+    console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+  });
+
+  requset.on('error', (e) => {
+    console.error(`problem with request: ${e.message}`);
+  });
+
+  archive.pipe(requset);
+
+  archive.on('end', () => {
+    console.log('archive success');
+    res.send('ok');
+      
+    requset.end(() => {
+      console.log('publish success');
+      res.end();
+      server.close();
+    });
+  })
+
+  }
+);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
