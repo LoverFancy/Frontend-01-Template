@@ -17,12 +17,18 @@
 
 ### 常见的三款无头浏览器
 
-||Phantomjs|Selenium|Puppeteer|
+||Phantomjs|selenium-webdriver|Puppeteer|
 |--|--|--|--|
-|作者|phantomjs Contributors|Selenium support|google|
-|更新、维护状态|暂停更新、维护|更新、维护中|更新、维护中|
-|版本状态|v2.1.1|selenium-4.0.0-alpha|v5.2.1|
-|JavaScript标准|ES5|ES6|ES6|
+|author|phantomjs Contributors|Selenium support|google|
+|created|Sep 11, 2012|Jan 15, 2013|May 10, 2017|
+|updated|Jul 24, 2019|Aug 26, 2020|Aug 25, 2020|
+|git star|1,408|18,481|64,330|
+|issue|174|383|1200|
+|version|v2.1.1|selenium-4.0.0-alpha|v5.2.1|
+|JavaScript Support|ES5|ES6|ES6|
+
+[A list of (almost) all headless web browsers in existence](https://github.com/dhamaniasad/HeadlessBrowsers)
+
 
 ## 白名单鉴权发布工具
 
@@ -62,4 +68,16 @@
 
 * res.send 不能在 request 的 end 事件中执行，需要调整到流式处理 的 end 事件中去
 
-* NodeJS 请求 https://api.github.com/user 时，除了在header中 要携带 AuthToken 之外，还需要user-agent 参数，才能正常请求
+* NodeJS 请求 https://api.github.com/user 时，除了在header中 要携带 AuthToken 之外，还需要user-agent参数，才能正常请求
+
+### 对当前鉴权流程的思考
+
+客户端携带 access_token 上传的流程是否可以再拆分为两步 ？
+  * 单独用access_token先进行鉴权请求
+  * 当鉴权请求通过后，再执行上传
+
+这样做的好处
+
+* 当鉴权前，客户端不应具有上传文件流的能力
+* 加快服务端获取 access_token 的效率
+* 有效利用服务器带宽
